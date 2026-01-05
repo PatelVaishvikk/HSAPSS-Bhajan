@@ -57,9 +57,10 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Link 
               href="/sabha"
-              className="text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors hidden sm:block"
+              className="text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors"
             >
-              Sabha Planning
+              <span className="sm:hidden">Sabha</span>
+              <span className="hidden sm:inline">Sabha Planning</span>
             </Link>
             <Link 
               href="/add" 
