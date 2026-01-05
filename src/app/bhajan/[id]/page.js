@@ -21,6 +21,16 @@ export default function BhajanDetails({ params }) {
         const data = await res.json();
         setBhajan(data);
       } catch (error) {
+        console.log('Network failed, checking offline storage...');
+        const offlineData = localStorage.getItem('offline_bhajans');
+        if (offlineData) {
+          const allBhajans = JSON.parse(offlineData);
+          const found = allBhajans.find(b => b._id === id);
+          if (found) {
+            setBhajan(found);
+            return;
+          }
+        }
         console.error('Failed to fetch bhajan:', error);
         router.push('/');
       } finally {

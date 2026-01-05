@@ -21,7 +21,15 @@ export async function GET(request) {
       filter.catId = category;
     }
 
-    const bhajans = await Bhajan.find(filter).select('-lyrics').sort({ title: 1 }).limit(50);
+    const isFull = searchParams.get('full') === 'true';
+
+    let queryBuilder = Bhajan.find(filter).sort({ title: 1 });
+    
+    if (!isFull) {
+      queryBuilder = queryBuilder.select('-lyrics').limit(50);
+    }
+
+    const bhajans = await queryBuilder;
     return NextResponse.json(bhajans);
   } catch (error) {
     console.error('API Error:', error);

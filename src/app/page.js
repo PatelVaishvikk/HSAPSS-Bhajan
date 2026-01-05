@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Plus, Music, BookOpen, X, ChevronRight } from 'lucide-react';
+import { Search, Plus, Music, BookOpen, X, ChevronRight, Download, WifiOff } from 'lucide-react';
 import Link from 'next/link';
 
 const CATEGORIES = [
@@ -17,6 +17,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [bhajans, setBhajans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
     const fetchBhajans = async () => {
@@ -24,11 +25,34 @@ export default function Home() {
       try {
         const url = `/api/bhajans?q=${query}${selectedCategory !== 'all' ? `&category=${selectedCategory}` : ''}`;
         const res = await fetch(url);
+        if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
         setBhajans(Array.isArray(data) ? data : []);
+        setIsOffline(false);
       } catch (error) {
-        console.error('Failed to fetch bhajans:', error);
-        setBhajans([]);
+        console.log('Network failed, checking offline storage...');
+        const offlineData = localStorage.getItem('offline_bhajans');
+        if (offlineData) {
+          let data = JSON.parse(offlineData);
+          
+          // Client-side filtering
+          if (selectedCategory !== 'all') {
+            data = data.filter(b => b.catId === selectedCategory);
+          }
+          if (query) {
+            const q = query.toLowerCase();
+            data = data.filter(b => 
+              b.title.toLowerCase().includes(q) || 
+              b.title_guj.includes(q) || 
+              (b.lyrics && b.lyrics.toLowerCase().includes(q))
+            );
+          }
+          
+          setBhajans(data);
+          setIsOffline(true);
+        } else {
+          setBhajans([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -40,6 +64,22 @@ export default function Home() {
 
     return () => clearTimeout(debounce);
   }, [query, selectedCategory]);
+
+  const downloadOffline = async () => {
+    const confirmDownload = window.confirm('Download all bhajans for offline use? This might take a moment.');
+    if (!confirmDownload) return;
+
+    try {
+      const res = await fetch('/api/bhajans?full=true');
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      localStorage.setItem('offline_bhajans', JSON.stringify(data));
+      alert(`Success! ${data.length} bhajans saved for offline use.`);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Failed to download bhajans. Please check your internet connection.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -55,6 +95,13 @@ export default function Home() {
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={downloadOffline}
+              className="p-2 text-slate-600 hover:text-orange-600 transition-colors"
+              title="Download for Offline"
+            >
+              <Download size={20} />
+            </button>
             <Link 
               href="/sabha"
               className="text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors"
@@ -129,8 +176,13 @@ export default function Home() {
         {/* Results */}
         <div className="container-custom">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
               {loading ? 'Loading...' : `${bhajans.length} Bhajans`}
+              {isOffline && (
+                <span className="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-full flex items-center gap-1">
+                  <WifiOff size={12} /> Offline Mode
+                </span>
+              )}
             </h2>
           </div>
 
