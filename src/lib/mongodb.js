@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 // Hardcoding the URI to ensure it connects to the correct database
-const MONGODB_URI = 'mongodb://127.0.0.1:27017/bhajan-db';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/bhajan-db';
 
 if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
