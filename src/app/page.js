@@ -138,7 +138,7 @@ export default function Home() {
               <input
                 type="text"
                 placeholder="Search by title, lyrics..."
-                className="w-full px-4 py-3 text-lg bg-transparent border-none focus:ring-0 placeholder:text-slate-400 text-slate-900"
+                className="w-full px-4 py-3 text-lg bg-transparent border-none focus:ring-0 focus:outline-none placeholder:text-slate-400 text-slate-900"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />

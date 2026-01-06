@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Copy, Check, Heart, Share2, Music } from 'lucide-react';
+import { ArrowLeft, Copy, Check, Heart, Share2, Music, Type, Minus, Plus, MoveVertical, X } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BhajanDetails({ params }) {
@@ -12,6 +12,15 @@ export default function BhajanDetails({ params }) {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [liked, setLiked] = useState(false);
+  
+  // Font Size State (Default 18px)
+  const [fontSize, setFontSize] = useState(18);
+  // Line Height State (Default 2.0)
+  const [lineHeight, setLineHeight] = useState(2.0);
+  
+  // Appearance Menu State
+  const [showAppearance, setShowAppearance] = useState(false);
+  const appearanceRef = useRef(null);
 
   useEffect(() => {
     const fetchBhajan = async () => {
@@ -41,6 +50,19 @@ export default function BhajanDetails({ params }) {
     fetchBhajan();
   }, [id, router]);
 
+  // Click outside to close appearance menu
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (appearanceRef.current && !appearanceRef.current.contains(event.target)) {
+        setShowAppearance(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [appearanceRef]);
+
   const handleCopy = () => {
     const text = document.querySelector('.lyrics-content')?.innerText;
     if (text) {
@@ -48,6 +70,24 @@ export default function BhajanDetails({ params }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const adjustFontSize = (delta) => {
+    setFontSize(prev => {
+      const newSize = prev + delta;
+      if (newSize < 14) return 14; // Min size
+      if (newSize > 40) return 40; // Max size
+      return newSize;
+    });
+  };
+
+  const adjustLineHeight = (delta) => {
+    setLineHeight(prev => {
+      const newHeight = prev + delta;
+      if (newHeight < 1.2) return 1.2; // Min
+      if (newHeight > 3.5) return 3.5; // Max
+      return parseFloat(newHeight.toFixed(1));
+    });
   };
 
   if (loading) return (
@@ -62,7 +102,7 @@ export default function BhajanDetails({ params }) {
     <div className="min-h-screen bg-slate-50">
       {/* Navbar */}
       <nav className="fixed w-full z-50 glass">
-        <div className="container-custom h-16 flex items-center justify-between">
+        <div className="container-custom h-16 flex items-center justify-between relative">
           <Link 
             href="/"
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors font-medium"
@@ -71,6 +111,71 @@ export default function BhajanDetails({ params }) {
             <span>Back</span>
           </Link>
           <div className="flex items-center gap-2">
+            
+            {/* Appearance Menu Button */}
+            <div className="relative" ref={appearanceRef}>
+              <button 
+                onClick={() => setShowAppearance(!showAppearance)}
+                className={`p-2 rounded-full transition-all flex items-center gap-1 ${showAppearance ? 'bg-slate-900 text-white' : 'hover:bg-slate-100 text-slate-600'}`}
+                title="Appearance Settings"
+              >
+                <Type size={20} />
+              </button>
+
+              {/* Popover Menu */}
+              {showAppearance && (
+                <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-100 p-4 animate-in fade-in zoom-in-95 duration-200 z-50">
+                  <div className="space-y-4">
+                    {/* Font Size Row */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Font Size</span>
+                        <span className="text-xs font-mono text-slate-400">{fontSize}px</span>
+                      </div>
+                      <div className="flex items-center gap-3 bg-slate-50 rounded-xl p-2 border border-slate-100">
+                        <button 
+                          onClick={() => adjustFontSize(-2)}
+                          className="p-2 rounded-lg hover:bg-white hover:shadow-sm text-slate-600 transition-all flex-1 flex justify-center"
+                        >
+                          <span className="text-sm font-bold">A</span>
+                        </button>
+                        <div className="h-4 w-[1px] bg-slate-200"></div>
+                        <button 
+                          onClick={() => adjustFontSize(2)}
+                          className="p-2 rounded-lg hover:bg-white hover:shadow-sm text-slate-600 transition-all flex-1 flex justify-center"
+                        >
+                          <span className="text-lg font-bold">A</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Line Height Row */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Spacing</span>
+                         <span className="text-xs font-mono text-slate-400">{lineHeight}</span>
+                      </div>
+                      <div className="flex items-center gap-3 bg-slate-50 rounded-xl p-2 border border-slate-100">
+                        <button 
+                          onClick={() => adjustLineHeight(-0.2)}
+                          className="p-2 rounded-lg hover:bg-white hover:shadow-sm text-slate-600 transition-all flex-1 flex justify-center"
+                        >
+                          <MoveVertical size={16} className="scale-75" />
+                        </button>
+                        <div className="h-4 w-[1px] bg-slate-200"></div>
+                         <button 
+                          onClick={() => adjustLineHeight(0.2)}
+                          className="p-2 rounded-lg hover:bg-white hover:shadow-sm text-slate-600 transition-all flex-1 flex justify-center"
+                        >
+                          <MoveVertical size={20} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <button 
               onClick={() => setLiked(!liked)}
               className={`p-2 rounded-full transition-all ${liked ? 'bg-red-50 text-red-500' : 'hover:bg-slate-100 text-slate-500'}`}
@@ -115,7 +220,10 @@ export default function BhajanDetails({ params }) {
 
           {/* Lyrics */}
           <div className="p-8 md:p-12">
-            <div className="lyrics-content font-medium whitespace-pre-wrap leading-loose text-lg text-slate-600 font-serif">
+            <div 
+              className="lyrics-content font-medium whitespace-pre-wrap text-slate-600 font-serif transition-all duration-200"
+              style={{ fontSize: `${fontSize}px`, lineHeight: lineHeight }}
+            >
               {bhajan.lyrics}
             </div>
           </div>

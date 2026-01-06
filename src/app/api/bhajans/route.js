@@ -15,6 +15,7 @@ export async function GET(request) {
         { title: { $regex: query, $options: 'i' } },
         { title_guj: { $regex: query, $options: 'i' } },
         { lyrics: { $regex: query, $options: 'i' } },
+        { keywords: { $in: [new RegExp(query, 'i')] } },
       ];
     }
     if (category && category !== 'all') {
@@ -26,7 +27,9 @@ export async function GET(request) {
     let queryBuilder = Bhajan.find(filter).sort({ title: 1 });
     
     if (!isFull) {
-      queryBuilder = queryBuilder.select('-lyrics').limit(50);
+      // We still exclude lyrics to keep payload light, but we MUST return all titles for the directory
+      // The user explicitly asked for 'All' to show 'all the bhajans'
+      queryBuilder = queryBuilder.select('-lyrics'); 
     }
 
     const bhajans = await queryBuilder;

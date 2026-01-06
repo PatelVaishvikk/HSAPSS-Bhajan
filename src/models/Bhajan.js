@@ -12,6 +12,7 @@ const BhajanSchema = new Schema(
     isGer: { type: Boolean, default: false },
     isAudio: { type: Boolean, default: false },
     audioUrl: { type: String },
+    keywords: { type: [String], default: [] },
   },
   { 
     timestamps: true, 
@@ -20,7 +21,7 @@ const BhajanSchema = new Schema(
 );
 
 // Add text index for search
-BhajanSchema.index({ title: 'text', title_guj: 'text', lyrics: 'text', catId: 'text' });
+BhajanSchema.index({ title: 'text', title_guj: 'text', lyrics: 'text', catId: 'text', keywords: 'text' });
 
 // In Next.js, models can be cached. In development, we might want to force re-initialization
 // to ensure schema changes are applied.
