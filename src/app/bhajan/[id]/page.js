@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Copy, Check, Heart, Share2, Music, Type, Minus, Plus, MoveVertical, X } from 'lucide-react';
+import { ArrowLeft, Copy, Check, Heart, Share2, Music, Type, Minus, Plus, MoveVertical, X, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BhajanDetails({ params }) {
@@ -12,6 +12,7 @@ export default function BhajanDetails({ params }) {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   
   // Font Size State (Default 18px)
   const [fontSize, setFontSize] = useState(18);
@@ -72,6 +73,26 @@ export default function BhajanDetails({ params }) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this bhajan? This action cannot be undone.')) return;
+
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/bhajans/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        router.push('/');
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to delete bhajan');
+      }
+    } catch (error) {
+      console.error('Delete failed:', error);
+      alert('Delete failed. Check your connection.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const adjustFontSize = (delta) => {
     setFontSize(prev => {
       const newSize = prev + delta;
@@ -111,6 +132,28 @@ export default function BhajanDetails({ params }) {
             <span>Back</span>
           </Link>
           <div className="flex items-center gap-2">
+
+            {/* Edit/Delete for Community Bhajans */}
+            {bhajan.catId === 'user-added' && (
+              <>
+                <Link
+                  href={`/bhajan/${id}/edit`}
+                  className="p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-all"
+                  title="Edit Bhajan"
+                >
+                  <Edit size={20} />
+                </Link>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="p-2 rounded-full hover:bg-red-50 text-red-500 transition-all disabled:opacity-50"
+                  title="Delete Bhajan"
+                >
+                  <Trash2 size={20} />
+                </button>
+                <div className="w-[1px] h-6 bg-slate-200 mx-1"></div>
+              </>
+            )}
             
             {/* Appearance Menu Button */}
             <div className="relative" ref={appearanceRef}>

@@ -127,11 +127,11 @@ export default function Home() {
       {/* Hero Section */}
       <div className="pt-32 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center mb-12 animate-fade-in-up">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight">
-            Discover Spiritual <span className="text-orange-600">Wisdom</span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 mb-2 tracking-tight">
+            HSAPSS <span className="text-orange-600">Canada</span>
           </h1>
-          <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Explore our curated collection of sacred bhajans. Read lyrics, find peace, and share with the community.
+          <p className="text-2xl sm:text-3xl font-semibold text-slate-700 mb-8 max-w-2xl mx-auto">
+            Bhaktisudha
           </p>
 
           {/* Search Bar */}

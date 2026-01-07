@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, use, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Menu, X, Type, MoveVertical } from 'lucide-react';
 
 export default function SessionPresentation({ params }) {
   const { sessionId } = use(params);
@@ -13,6 +13,12 @@ export default function SessionPresentation({ params }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Appearance State
+  const [fontSize, setFontSize] = useState(32);
+  const [lineHeight, setLineHeight] = useState(2.0);
+  const [showAppearance, setShowAppearance] = useState(false);
+  const appearanceRef = useRef(null);
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -30,6 +36,37 @@ export default function SessionPresentation({ params }) {
     };
     fetchSession();
   }, [sessionId]);
+
+  // Click outside appearance menu
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (appearanceRef.current && !appearanceRef.current.contains(event.target)) {
+        setShowAppearance(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [appearanceRef]);
+
+  const adjustFontSize = (delta) => {
+    setFontSize(prev => {
+      const newSize = prev + delta;
+      if (newSize < 24) return 24;
+      if (newSize > 80) return 80;
+      return newSize;
+    });
+  };
+
+  const adjustLineHeight = (delta) => {
+    setLineHeight(prev => {
+      const newHeight = prev + delta;
+      if (newHeight < 1.2) return 1.2;
+      if (newHeight > 3.0) return 3.0;
+      return parseFloat(newHeight.toFixed(1));
+    });
+  };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
@@ -61,7 +98,7 @@ export default function SessionPresentation({ params }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
+    <div className="h-screen fixed inset-0 overflow-hidden bg-slate-900 text-slate-100 flex flex-col">
       {/* Top Bar */}
       <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-slate-900/95 backdrop-blur z-20">
         <div className="flex items-center gap-4">
@@ -83,6 +120,70 @@ export default function SessionPresentation({ params }) {
         </div>
         
         <div className="flex items-center gap-4">
+           {/* Appearance Menu Button */}
+            <div className="relative" ref={appearanceRef}>
+              <button 
+                onClick={() => setShowAppearance(!showAppearance)}
+                className={`p-2 rounded-full transition-all flex items-center gap-1 ${showAppearance ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 text-slate-400'}`}
+                title="Appearance Settings"
+              >
+                <Type size={20} />
+              </button>
+
+              {/* Popover Menu */}
+              {showAppearance && (
+                <div className="absolute right-0 top-full mt-2 w-72 bg-slate-800/90 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-700 p-4 animate-in fade-in zoom-in-95 duration-200 z-50">
+                  <div className="space-y-4">
+                    {/* Font Size Row */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Font Size</span>
+                        <span className="text-xs font-mono text-slate-400">{fontSize}px</span>
+                      </div>
+                      <div className="flex items-center gap-3 bg-slate-900/50 rounded-xl p-2 border border-slate-700">
+                        <button 
+                          onClick={() => adjustFontSize(-4)}
+                          className="p-2 rounded-lg hover:bg-slate-700 text-slate-300 transition-all flex-1 flex justify-center"
+                        >
+                          <span className="text-sm font-bold">A</span>
+                        </button>
+                        <div className="h-4 w-[1px] bg-slate-700"></div>
+                        <button 
+                          onClick={() => adjustFontSize(4)}
+                          className="p-2 rounded-lg hover:bg-slate-700 text-slate-300 transition-all flex-1 flex justify-center"
+                        >
+                          <span className="text-lg font-bold">A</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Line Height Row */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Spacing</span>
+                         <span className="text-xs font-mono text-slate-400">{lineHeight}</span>
+                      </div>
+                      <div className="flex items-center gap-3 bg-slate-900/50 rounded-xl p-2 border border-slate-700">
+                        <button 
+                          onClick={() => adjustLineHeight(-0.2)}
+                          className="p-2 rounded-lg hover:bg-slate-700 text-slate-300 transition-all flex-1 flex justify-center"
+                        >
+                          <MoveVertical size={16} className="scale-75" />
+                        </button>
+                        <div className="h-4 w-[1px] bg-slate-700"></div>
+                         <button 
+                          onClick={() => adjustLineHeight(0.2)}
+                          className="p-2 rounded-lg hover:bg-slate-700 text-slate-300 transition-all flex-1 flex justify-center"
+                        >
+                          <MoveVertical size={20} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
           <div className="flex bg-slate-800 rounded-lg p-1">
             <button
               onClick={() => setViewMode('slides')}
@@ -191,7 +292,10 @@ export default function SessionPresentation({ params }) {
                   </h3>
                 </div>
 
-                <div className="prose prose-invert prose-lg md:prose-xl max-w-none text-center whitespace-pre-wrap font-serif leading-loose text-slate-300">
+                <div 
+                  className="prose prose-invert max-w-none text-center whitespace-pre-wrap font-serif text-slate-300 transition-all duration-200"
+                  style={{ fontSize: `${fontSize}px`, lineHeight: lineHeight }}
+                >
                   {currentBhajan.lyrics}
                 </div>
               </div>
@@ -231,7 +335,10 @@ export default function SessionPresentation({ params }) {
                     </h3>
                   </div>
 
-                  <div className="prose prose-invert prose-lg md:prose-xl max-w-none text-center whitespace-pre-wrap font-serif leading-loose text-slate-300">
+                  <div 
+                    className="prose prose-invert max-w-none text-center whitespace-pre-wrap font-serif text-slate-300 transition-all duration-200"
+                    style={{ fontSize: `${fontSize}px`, lineHeight: lineHeight }}
+                  >
                     {item.bhajanId.lyrics}
                   </div>
                 </div>
