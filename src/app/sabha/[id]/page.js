@@ -2,15 +2,55 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Calendar, Plus, ChevronRight, Clock, Trash2 } from 'lucide-react';
 
 export default function SabhaSessions({ params }) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sabhaName, setSabhaName] = useState('');
+
+  // Handle auto-planning from Calendar
+  useEffect(() => {
+    const action = searchParams.get('action');
+    const date = searchParams.get('date');
+    const festival = searchParams.get('festival');
+
+    if (action === 'plan' && date && festival) {
+      const confirmPlan = window.confirm(`Plan a session for "${festival}" on ${date}?`);
+      if (confirmPlan) {
+        createSession(date, festival);
+        // Clear params after action to prevent loop/re-trigger
+        router.replace(`/sabha/${id}`);
+      }
+    }
+  }, [searchParams, id]);
+
+  const createSession = async (date, note = '') => {
+      try {
+        const res = await fetch(`/api/sabhas/${id}/sessions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date, notes: note }), // Assuming notes field exists in API
+        });
+        
+        if (res.ok) {
+          const newSession = await res.json();
+          // Fetch updated list
+          const sessionsRes = await fetch(`/api/sabhas/${id}/sessions`);
+          const data = await sessionsRes.json();
+          setSessions(data);
+          alert('Session created successfully!');
+        } else {
+          alert('Failed to create session');
+        }
+      } catch (error) {
+        console.error('Error creating session:', error);
+      }
+  };
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -35,23 +75,7 @@ export default function SabhaSessions({ params }) {
   const handleCreateSession = async () => {
     const date = prompt('Enter session date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
     if (!date) return;
-
-    try {
-      const res = await fetch(`/api/sabhas/${id}/sessions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date }),
-      });
-      
-      if (res.ok) {
-        const newSession = await res.json();
-        router.push(`/sabha/session/${newSession._id}`);
-      } else {
-        alert('Failed to create session');
-      }
-    } catch (error) {
-      console.error('Error creating session:', error);
-    }
+    await createSession(date);
   };
 
   const handleDeleteSession = async (e, sessionId) => {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Plus, Music, BookOpen, X, ChevronRight, Download, WifiOff } from 'lucide-react';
 import Link from 'next/link';
+import UpcomingFestivals from '../components/UpcomingFestivals';
 
 const CATEGORIES = [
   { id: 'all', label: 'All' },
@@ -87,9 +88,6 @@ export default function Home() {
       <nav className="fixed w-full z-50 glass">
         <div className="container-custom h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-              <BookOpen className="text-white w-5 h-5" />
-            </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
               HSAPSS Bhajans
             </span>
@@ -102,6 +100,12 @@ export default function Home() {
             >
               <Download size={20} />
             </button>
+            <Link 
+              href="/calendar"
+              className="text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors hidden md:inline"
+            >
+              Calendar
+            </Link>
             <Link 
               href="/sabha"
               className="text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors"
@@ -131,7 +135,7 @@ export default function Home() {
           </p>
 
           {/* Search Bar */}
-          <div className="relative max-w-2xl mx-auto group">
+          <div className="relative max-w-2xl mx-auto group mb-10">
             <div className="absolute inset-0 bg-orange-500/20 rounded-2xl blur-xl group-hover:bg-orange-500/30 transition-all opacity-0 group-hover:opacity-100"></div>
             <div className="relative bg-white shadow-xl shadow-slate-200/50 rounded-2xl flex items-center p-2 border border-slate-100">
               <Search className="ml-4 text-slate-400 w-6 h-6" />
@@ -151,6 +155,11 @@ export default function Home() {
                 </button>
               )}
             </div>
+          </div>
+          
+          {/* Upcoming Festivals Widget */}
+          <div className="max-w-md mx-auto">
+            <UpcomingFestivals />
           </div>
         </div>
 
